@@ -1,0 +1,55 @@
+# Expected outputs for infant_recon_all processing
+
+# Required directories that must exist in output directory
+required_directories:
+  - mri
+  - surf
+  - label
+  - stats
+  - log
+  - work
+
+# Required files organized by directory
+# These files MUST exist for validation to pass
+required_files:
+  # Root directory files
+  '.':
+    - mprage.nii.gz
+  
+  # MRI directory - core brain volumes
+  mri:
+    - aseg.mgz
+    - aseg.nii.gz
+    - brain.mgz
+    - brainmask.mgz
+    - norm.mgz
+    - norm.nii.gz
+    - brain.finalsurfs.mgz
+    - filled.mgz
+    - wm.mgz
+  
+  # MRI transforms subdirectory
+  mri/transforms:
+    - talairach.auto.xfm
+    - talairach.xfm
+  
+  # Surface directory - cortical surfaces
+  surf:
+    - lh.orig
+    - lh.white
+    - lh.inflated
+    - lh.area
+    - lh.curv
+    - rh.orig
+    - rh.white
+    - rh.area
+    - rh.curv
+  
+  # Label directory - cortical labels
+  label:
+    - lh.cortex.label
+    - rh.cortex.label
+  
+  # Log directory - processing logs
+  log:
+    - recon.log
