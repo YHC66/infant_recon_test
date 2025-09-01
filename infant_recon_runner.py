@@ -126,8 +126,23 @@ class InfantReconRunner:
         # Create output directory
         os.makedirs(unique_output_dir, exist_ok=True)
         
-        # Copy environment (preserves FREESURFER_HOME, etc.)
+        # Copy environment and ensure FreeSurfer is set up
         env = os.environ.copy()
+        
+        # Set up FreeSurfer environment if not already set
+        if 'FREESURFER_HOME' not in env or env['FREESURFER_HOME'] is None:
+            freesurfer_home = '/Applications/freesurfer/8.1.0'
+            env['FREESURFER_HOME'] = freesurfer_home
+            env['FSFAST_HOME'] = f'{freesurfer_home}/fsfast'
+            env['FSF_OUTPUT_FORMAT'] = 'nii.gz'
+            env['SUBJECTS_DIR'] = f'{freesurfer_home}/subjects'
+            env['MNI_DIR'] = f'{freesurfer_home}/mni'
+            
+            # Add FreeSurfer bin directory to PATH
+            freesurfer_bin = f'{freesurfer_home}/bin'
+            current_path = env.get('PATH', '')
+            if freesurfer_bin not in current_path:
+                env['PATH'] = f'{freesurfer_bin}:{current_path}'
         
         # Record start time
         start_time = time.time()
@@ -371,8 +386,9 @@ def main():
     """Example usage of the InfantReconRunner."""
     runner = InfantReconRunner()
     
-    # Example command - this is the working command provided
-    test_command = "infant_recon_all -s sub-01 --age 18 --inputfile /Users/cyh/freesurfer_proj/sub-01/anat/sub-01_T1w.nii.gz"
+    # Example command - the working command provided
+
+    test_command = "/Users/cyh/Desktop/freesurfer/infant/infant_recon_all -s sub-01 --age 18 --inputfile /Users/cyh/freesurfer_proj/sub-01/anat/sub-01_T1w.nii.gz"
     
     print("🧪 Infant FreeSurfer Command Runner - Example Usage")
     print("=" * 60)
