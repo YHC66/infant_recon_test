@@ -144,6 +144,21 @@ class InfantReconRunner:
             if freesurfer_bin not in current_path:
                 env['PATH'] = f'{freesurfer_bin}:{current_path}'
         
+        # Save command and environment to output directory
+        try:
+            # Save the exact command to txt file
+            with open(os.path.join(unique_output_dir, "command.txt"), "w") as fp:
+                fp.write(modified_command)
+            
+            # Save environment variables to YAML file
+            with open(os.path.join(unique_output_dir, "environment.yml"), "w") as fp:
+                yaml.safe_dump(dict(env), fp)
+            
+            print(f"📝 Saved command.txt and environment.yml to output directory")
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not save command/environment files: {e}")
+        
         # Record start time
         start_time = time.time()
         start_timestamp = datetime.now().isoformat()
@@ -386,8 +401,8 @@ def main():
     """Example usage of the InfantReconRunner."""
     runner = InfantReconRunner()
     
-    # Example command - the working command provided
-
+    # Example command - this is the working command provided
+    # Use full path to infant_recon_all since it's not in PATH
     test_command = "/Users/cyh/Desktop/freesurfer/infant/infant_recon_all -s sub-01 --age 18 --inputfile /Users/cyh/freesurfer_proj/sub-01/anat/sub-01_T1w.nii.gz"
     
     print("🧪 Infant FreeSurfer Command Runner - Example Usage")
