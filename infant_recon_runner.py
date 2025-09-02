@@ -322,6 +322,90 @@ class InfantReconRunner:
             
         return validation_result
     
+    def create_summary_file(self, exec_result, validation_result, combined_result):
+        """
+        Create a human-readable summary.txt file in the output directory.
+        
+        Args:
+            exec_result: Execution results
+            validation_result: Validation results
+            combined_result: Combined results
+        """
+        output_dir = exec_result['output_directory']
+        summary_path = os.path.join(output_dir, 'summary.txt')
+        
+        try:
+            # Extract subject name and age from original command
+            subject_name = "unknown"
+            age = "unknown"
+            try:
+                parts = exec_result['original_command'].split()
+                if '-s' in parts:
+                    subject_idx = parts.index('-s') + 1
+                    if subject_idx < len(parts):
+                        subject_name = parts[subject_idx]
+                if '--age' in parts:
+                    age_idx = parts.index('--age') + 1
+                    if age_idx < len(parts):
+                        age = f"{parts[age_idx]} months"
+            except (ValueError, IndexError):
+                pass
+            
+            # Format execution status
+            exec_status = "SUCCESS" if exec_result['success'] else "FAILED"
+            validation_status = "PASSED" if validation_result['validation_passed'] else "FAILED"
+            overall_status = "PASSED" if combined_result['overall_success'] else "FAILED"
+            
+            # Build summary content
+            summary_content = f"""INFANT FREESURFER TEST SUMMARY
+==============================
+
+Test Timestamp: {exec_result['start_time']}
+Command: {exec_result['original_command']}
+Output Directory: {output_dir}
+
+EXECUTION RESULTS:
+- Status: {exec_status}
+- Exit Code: {exec_result.get('exit_code', 'N/A')}
+- Runtime: {exec_result['execution_time_seconds']:.1f} seconds
+- Timeout: {'Yes' if exec_result.get('timeout_occurred', False) else 'No'}
+
+VALIDATION RESULTS:
+- Required Files: {validation_result['total_found_required']}/{validation_result['total_required_files']} found
+- Required Directories: {len(validation_result['required_directories']['found'])}/{len(validation_result['required_directories']['found']) + len(validation_result['required_directories']['missing'])} found
+- Optional Files: {len(validation_result['optional_files']['found'])} found
+- Overall Validation: {validation_status}
+"""
+
+            # Add missing files section if any
+            missing_files = validation_result['required_files']['missing']
+            missing_dirs = validation_result['required_directories']['missing']
+            if missing_files or missing_dirs:
+                summary_content += "\nMISSING ITEMS:\n"
+                for missing_dir in missing_dirs:
+                    summary_content += f"- Directory: {missing_dir}\n"
+                for missing_file in missing_files:
+                    summary_content += f"- File: {missing_file}\n"
+
+            summary_content += f"""
+OVERALL TEST RESULT: {overall_status}
+
+Additional Info:
+- FreeSurfer Home: {os.environ.get('FREESURFER_HOME', 'Not Set')}
+- Subject: {subject_name}
+- Age: {age}
+- Test Runner Version: InfantReconRunner v1.0
+"""
+
+            # Write summary file
+            with open(summary_path, 'w') as f:
+                f.write(summary_content)
+            
+            print(f"📄 Saved summary.txt to output directory")
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not create summary file: {e}")
+    
     def run_and_validate(self, command_string, timeout=3600, working_dir=None):
         """
         Run command and validate outputs in one operation.
@@ -352,6 +436,9 @@ class InfantReconRunner:
         }
         
         print(f"📊 Overall test result: {'PASSED' if combined_result['overall_success'] else 'FAILED'}")
+        
+        # Create summary file
+        self.create_summary_file(exec_result, validation_result, combined_result)
         
         return combined_result
     
@@ -409,7 +496,7 @@ def main():
     print("=" * 60)
     
     # Run and validate
-    result = runner.run_and_validate(test_command, timeout=3600)
+    result = runner.run_and_validate(test_command, timeout=3800)
     
     # Generate report
     report = runner.generate_report(result, output_file='test_report.json')
