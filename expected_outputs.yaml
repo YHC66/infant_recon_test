@@ -3,11 +3,13 @@
 # Required directories that must exist in output directory
 required_directories:
   - mri
+  - mri/transforms
   - surf
   - label
   - stats
   - log
   - work
+
 
 # Required files organized by directory
 # These files MUST exist for validation to pass

@@ -172,7 +172,7 @@ def main(args):
 
 
     # ---- Sanity check on the inputs ----
-
+        
     if not args.keep_going and not args.force and os.path.exists(os.path.join(outdir, 'mri')):
         message = f'Output already exists in {outdir}. To force overwrite, use the --force flag.' \
                 ' To pick-up from where the pipeline was left off or last modified, use the --keep-going' \
