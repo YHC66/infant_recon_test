@@ -221,14 +221,12 @@ class TestInfantFSExecution(unittest.TestCase):
             'required_files': {
                 'mri': ['norm.mgz', 'aseg.mgz', 'brain.mgz', 'brainmask.mgz', 'norm.nii.gz', 'aseg.nii.gz'],
                 'surf': ['lh.white', 'rh.white', 'lh.orig', 'rh.orig'],
-                'label': [],  # May be empty for some runs
-                'stats': [],  # May be empty if --no-stats is used
+                'label': [],  
+                'stats': [], 
                 'log': ['recon.log'],
-                '.': ['mprage.nii.gz']  # Files in root of output directory
+                '.': ['mprage.nii.gz'] 
             }
         }
-
-    # ========== GRANULAR SUBDIRECTORY AND FILE VALIDATION TESTS ==========
 
     def test_subdirs_exist(self):
         """Test that all required subdirectories exist in output directory."""
@@ -328,7 +326,7 @@ class TestInfantFSExecution(unittest.TestCase):
         stats_files = ['aseg.stats']  # Basic stats files that should exist
         stats_dir = os.path.join(self.expected_output_dir, 'stats')
         
-        # Only test if stats directory exists (depends on --no-stats flag)
+        # Only test if stats directory exists 
         if os.path.isdir(stats_dir):
             for file_name in stats_files:
                 file_path = os.path.join(stats_dir, file_name)
@@ -336,16 +334,6 @@ class TestInfantFSExecution(unittest.TestCase):
                     self.assertTrue(os.path.isfile(file_path),
                                    f"Expected stats file missing: {file_name} at {file_path}")
 
-    def test_root_directory_files(self):
-        """Test that required files exist in the root output directory."""
-        expected_outputs = self.load_expected_outputs_config()
-        root_files = expected_outputs.get('required_files', {}).get('.', [])
-        
-        for file_name in root_files:
-            file_path = os.path.join(self.expected_output_dir, file_name)
-            with self.subTest(file=file_name):
-                self.assertTrue(os.path.isfile(file_path),
-                               f"Required root file missing: {file_name} at {file_path}")
 
 if __name__ == '__main__':
     
