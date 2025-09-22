@@ -3,10 +3,10 @@
 import os
 import sys
 import unittest
-from unittest import mock
 import argparse
 import shlex
 import yaml
+import shutil
 
 # Import coverage conditionally
 try:
@@ -46,9 +46,9 @@ def parse_args(cmd_str: str) -> argparse.Namespace:
     Returns:
         argparse.Namespace: The parsed arguments.
     """
-    # Mock FREESURFER_HOME temporarily for CLI creation
-    with mock.patch.dict(os.environ, {'FREESURFER_HOME': '/fake/freesurfer/home'}):
-        parser = infantfs.create_cli()
+    # Create parser using real FreeSurfer environment
+    parser = infantfs.create_cli()
+    
     # Convert it into a list of args safely (as the shell would do)
     args_list = shlex.split(cmd_str)
     # Parse as if it came from the shell
@@ -110,37 +110,100 @@ class TestInfantFSExecution(unittest.TestCase):
     """
     Test class for actual InfantFS execution with output validation.
     
-    This class demonstrates the testing pattern where we:
-    1. Define an InfantFS command in setUp
+    1. Define an InfantFS command in setUpClass (runs ONCE)
     2. Use get_expected_output_directory to determine where outputs should be
     3. Test for expected files and directories in that location
     """
     
-    def setUp(self):
-        """
-        Set up test fixtures before each test method.
+    @classmethod
+    def _setup_freesurfer_environment(cls):
+        """Set up FreeSurfer environment variables for InfantFS execution."""
+        # Set up FreeSurfer environment - use the actual installation path
+        freesurfer_home = '/Applications/freesurfer/8.1.0'
+        if not os.path.exists(freesurfer_home):
+            raise RuntimeError(f"FreeSurfer not found at {freesurfer_home}")
         
-        Define the InfantFS command, determine expected output directory,
-        and ACTUALLY RUN InfantFS to create the files for testing.
+        print(f"Setting up FreeSurfer environment: {freesurfer_home}")
+        os.environ['FREESURFER_HOME'] = freesurfer_home
+        
+        # Add FreeSurfer bin to PATH
+        freesurfer_bin = f'{freesurfer_home}/bin'
+        current_path = os.environ.get('PATH', '')
+        if freesurfer_bin not in current_path:
+            os.environ['PATH'] = f'{freesurfer_bin}:{current_path}'
+        
+        # Set additional FreeSurfer environment variables
+        os.environ['FSFAST_HOME'] = f'{freesurfer_home}/fsfast'
+        os.environ['FSF_OUTPUT_FORMAT'] = 'nii.gz'
+        os.environ['MNI_DIR'] = f'{freesurfer_home}/mni'
+        
+        print(f"✅ FreeSurfer environment configured successfully")
+
+    @classmethod
+    def setUpClass(cls):
         """
+        Set up test fixtures ONCE for the entire test class.
+        
+        This runs InfantFS only once, then all tests validate the same output.
+        """
+        print("=" * 60)
+        print("Setting up InfantFS execution for all tests")
+        print("=" * 60)
+        
         # Define the InfantFS command string for testing
-        self.infantfs_command = '-s sub-01 --age 18 --inputfile /Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz --no-cleanup'
+        cls.infantfs_command = '-s sub-01 --age 18 --inputfile /Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz --no-cleanup --outdir /Users/cyh/Desktop/infant_recon_test/test_execution_output'
+        
+        # Set up FreeSurfer environment
+        cls._setup_freesurfer_environment()
         
         # Set up environment for consistent testing
         os.environ['SUBJECTS_DIR'] = '/Users/cyh/Desktop/infant_recon_test/test_subjects'
         
-        # Use our Step 2 function to determine expected output directory
-        self.expected_output_dir = get_expected_output_directory(self.infantfs_command)
-
-        
         # Parse the arguments for additional test information
-        self.parsed_args = parse_args(self.infantfs_command)
+        cls.parsed_args = parse_args(cls.infantfs_command)
         
-        # Load expected outputs configuration like infant_recon_runner.py
-        # self.expected_outputs = self.load_expected_outputs_config()
+        # Set the expected output directory
+        cls.expected_output_dir = '/Users/cyh/Desktop/infant_recon_test/test_execution_output'
         
-        # === NEW: Actually run InfantFS to create files for testing ===
-        self.expected_output_dir = '/Users/cyh/Desktop/infant_recon_test/test_execution_output'
+        # Clear output directory before running
+        if os.path.exists(cls.expected_output_dir):
+            print(f"Clearing existing output directory: {cls.expected_output_dir}")
+            shutil.rmtree(cls.expected_output_dir)
+        
+        # Create fresh output directory
+        os.makedirs(cls.expected_output_dir, exist_ok=True)
+        print(f"Created fresh output directory: {cls.expected_output_dir}")
+        
+        # Run InfantFS ONCE to create files for ALL tests
+        try:
+            print(f" Starting InfantFS execution with command: {cls.infantfs_command}")
+            print("  This will take ~1 hour")
+            
+            # Parse arguments and run InfantFS main function
+            infantfs.main(cls.parsed_args)
+            
+            print(f"✅ InfantFS execution completed successfully")
+            print(" All tests will now validate this output")
+            cls.infantfs_execution_successful = True
+            
+        except Exception as e:
+            print(f"⚠️ InfantFS execution failed: {e}")
+            print(f"Tests will check expected structure but may fail due to missing files")
+            cls.infantfs_execution_successful = False
+        
+        print("=" * 60)
+    
+    def setUp(self):
+        """
+        Set up test fixtures before each individual test method.
+        
+        Now it just sets instance variables - InfantFS execution happens once in setUpClass.
+        """
+        # Copy class variables to instance variables for test access
+        self.infantfs_command = self.__class__.infantfs_command
+        self.parsed_args = self.__class__.parsed_args
+        self.expected_output_dir = self.__class__.expected_output_dir
+        self.infantfs_execution_successful = self.__class__.infantfs_execution_successful
     
     
     # def load_expected_outputs_config(self):
@@ -353,9 +416,7 @@ if __name__ == '__main__':
 
     # Run all tests
     try:
-        unittest.main(verbosity=2)
-    except SystemExit:  # unittest.main() calls sys.exit()
-        pass
+        unittest.main(verbosity=2, exit=False)
     except Exception as e:
         print(f"Test execution failed: {e}")
 
