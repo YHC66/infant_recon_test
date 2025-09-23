@@ -1,0 +1,12 @@
+name: fsenv
+channels:
+  - conda-forge
+dependencies:
+  - coverage
+  - numpy
+  - pip
+  - python=3.10
+  - pyyaml
+  - scipy
+  - pip:
+      - surfa
