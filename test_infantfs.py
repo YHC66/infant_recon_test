@@ -24,13 +24,14 @@ except ImportError:
 
 # AUXILIARY FUNCTIONS
 
+
 def infantfs_parser(cmd_str: str) -> argparse.Namespace:
     """
     Parse command-line arguments from a string using InfantFS's argument parser.
-    
+
     Args:
         command_line_str (str): The command line string to parse.
-        
+
     Returns:
         argparse.Namespace: The parsed arguments.
     """
@@ -46,35 +47,37 @@ def infantfs_parser(cmd_str: str) -> argparse.Namespace:
 
 # UNIT TESTS
 
+
 class TestOutputDirectoryTree(unittest.TestCase):
     """
     Test class for actual InfantFS execution with output validation.
-    
+
     1. Define an InfantFS command in setUpClass (runs ONCE)
     2. Use get_expected_output_directory to determine where outputs should be
     3. Test for expected files and directories in that location
 
     """
-    
+
     @classmethod
     def setUpClass(cls):
         """
         Set up test fixtures ONCE for the entire test class.
-        
+
         This runs InfantFS only once, then all tests validate the same output.
         """
         print("=" * 60)
         print("Setting up InfantFS execution for all tests")
         print("=" * 60)
-        
+
         # Define the InfantFS command string for testing
-        cls.infantfs_command = '-s sub-01 --age 18 --inputfile /Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz --no-cleanup --outdir /Users/cyh/Desktop/infant_recon_test/test_execution_output'
-        
+        cls.infantfs_command = "-s sub-01 --age 18 --inputfile /Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz --no-cleanup --outdir /Users/cyh/Desktop/infant_recon_test/test_execution_output"
+
         # Set the expected output directory
         # If this fails, no point in continuing...
-        cls.expected_output_dir = \
-            helpers.get_expected_output_directory(cls.infantfs_command)
-        
+        cls.expected_output_dir = helpers.get_expected_output_directory(
+            cls.infantfs_command
+        )
+
         # Ensure the output directory is clean before running tests
         # Requiring it to be empty is safer than deleting it outright
         if os.path.exists(cls.expected_output_dir):
@@ -82,27 +85,29 @@ class TestOutputDirectoryTree(unittest.TestCase):
                 raise RuntimeError(
                     f"Output directory is not empty: {cls.expected_output_dir}"
                 )
-            
+
         # Load expected outputs from YAML file
         # If it fails, no point in continuing...
         cls.expected_outputs = cls._load_expected_outputs_config()
-        
+
         # Parse arguments that will be used to call InfantFS.main()
         cls.parsed_args = infantfs_parser(cls.infantfs_command)
-        
+
         # Run InfantFS ONCE for all tests on the output directory tree
         # THIS IS LONG (~1 hour), so we do it only once
         try:
             cls._run_infantfs()
         except Exception as e:
             print(f"⚠️ InfantFS execution failed: {e}")
-            print(f"Tests will check expected structure but may fail due to missing files")
+            print(
+                f"Tests will check expected structure but may fail due to missing files"
+            )
             cls.infantfs_execution_successful = False
         else:
             cls.infantfs_execution_successful = True
-        
+
         print("=" * 60)
-        
+
     @staticmethod
     def _load_expected_outputs_config():
         """
@@ -115,9 +120,9 @@ class TestOutputDirectoryTree(unittest.TestCase):
                 config = yaml.safe_load(f)
         except Exception as e:
             raise RuntimeError(f"Error loading expected outputs from: {e}")
-        
+
         return config
-    
+
     @classmethod
     def _run_infantfs(cls):
         print(
@@ -125,124 +130,129 @@ class TestOutputDirectoryTree(unittest.TestCase):
             f"{cls.infantfs_command}"
         )
         print("  This may take ~1 hour")
-        
+
         # Parse arguments and run InfantFS main function
         infantfs.main(cls.parsed_args)
-        
+
         print(f"✅ InfantFS execution completed successfully")
         print(" All tests will now validate this output")
-            
-    # --------------------------- Test methods ------------------------------ # 
-    
+
+    # --------------------------- Test methods ------------------------------ #
+
     def test_command_parsing(self):
         """Test that our command parsing works correctly."""
-        self.assertEqual(self.parsed_args.s, 'sub-01')
+        self.assertEqual(self.parsed_args.s, "sub-01")
         self.assertEqual(self.parsed_args.age, 18)
-        self.assertTrue(hasattr(self.parsed_args, 'no_cleanup'))
+        self.assertTrue(hasattr(self.parsed_args, "no_cleanup"))
         self.assertTrue(self.parsed_args.no_cleanup)
-        
+
     def test_input_file_exists(self):
         """Test that the input file specified in command exists."""
         input_file = self.parsed_args.inputfile
-        self.assertTrue(os.path.exists(input_file), 
-                       f"Input file should exist: {input_file}")
-        self.assertTrue(input_file.endswith('.nii.gz'),
-                       "Input file should be a NIfTI file")
+        self.assertTrue(
+            os.path.exists(input_file), f"Input file should exist: {input_file}"
+        )
+        self.assertTrue(
+            input_file.endswith(".nii.gz"), "Input file should be a NIfTI file"
+        )
 
     def test_output_directory_exists(self):
         """Test that the output directory exists."""
         self.assertTrue(
             os.path.exists(self.expected_output_dir),
-            f"Output directory should exist: {self.expected_output_dir}"
+            f"Output directory should exist: {self.expected_output_dir}",
         )
 
     def test_subdirs_exist(self):
         """Test that all required subdirectories exist in output directory."""
-        required_dirs = self.expected_outputs.get('required_directories', [])
+        required_dirs = self.expected_outputs.get("required_directories", [])
         for dir_name in required_dirs:
             dir_path = os.path.join(self.expected_output_dir, dir_name)
             with self.subTest(directory=dir_name):
                 self.assertTrue(
                     os.path.isdir(dir_path),
-                    f"Required subdirectory missing: {dir_name} at {dir_path}")
+                    f"Required subdirectory missing: {dir_name} at {dir_path}",
+                )
 
     def test_mri_subdir_files(self):
         """Test that all required MRI files exist in mri subdirectory."""
-        mri_files = self.expected_outputs['required_files']['mri']
-        mri_dir = os.path.join(self.expected_output_dir, 'mri')
-        
+        mri_files = self.expected_outputs["required_files"]["mri"]
+        mri_dir = os.path.join(self.expected_output_dir, "mri")
+
         for file_name in mri_files:
             file_path = os.path.join(mri_dir, file_name)
             with self.subTest(file=file_name):
                 self.assertTrue(
                     os.path.isfile(file_path),
-                    f"Required MRI file missing: {file_name} at {file_path}"
+                    f"Required MRI file missing: {file_name} at {file_path}",
                 )
 
     def test_mri_transforms_subdir_files(self):
         """Test that all required transform files exist in mri/transforms subdirectory."""
-        transform_files = \
-            self.expected_outputs['required_files']['mri/transforms']
+        transform_files = self.expected_outputs["required_files"][
+            "mri/transforms"
+        ]
         transforms_dir = os.path.join(
-            self.expected_output_dir, 'mri', 'transforms')
-        
+            self.expected_output_dir, "mri", "transforms"
+        )
+
         for file_name in transform_files:
             file_path = os.path.join(transforms_dir, file_name)
             with self.subTest(file=file_name):
                 self.assertTrue(
                     os.path.isfile(file_path),
                     f"Required transform file missing: "
-                    f"{file_name} at {file_path}"
+                    f"{file_name} at {file_path}",
                 )
 
     def test_surf_subdir_files(self):
         """Test that all required surface files exist in surf subdirectory."""
-        surf_files = self.expected_outputs['required_files']['surf']
-        surf_dir = os.path.join(self.expected_output_dir, 'surf')
-        
+        surf_files = self.expected_outputs["required_files"]["surf"]
+        surf_dir = os.path.join(self.expected_output_dir, "surf")
+
         for file_name in surf_files:
             file_path = os.path.join(surf_dir, file_name)
             with self.subTest(file=file_name):
                 self.assertTrue(
                     os.path.isfile(file_path),
                     f"Required surface file missing: "
-                    f"{file_name} at {file_path}"
+                    f"{file_name} at {file_path}",
                 )
 
     def test_label_subdir_files(self):
         """Test that all required label files exist in label subdirectory."""
-        label_files = self.expected_outputs['required_files']['label']
-        label_dir = os.path.join(self.expected_output_dir, 'label')
-        
+        label_files = self.expected_outputs["required_files"]["label"]
+        label_dir = os.path.join(self.expected_output_dir, "label")
+
         for file_name in label_files:
             file_path = os.path.join(label_dir, file_name)
             with self.subTest(file=file_name):
                 self.assertTrue(
                     os.path.isfile(file_path),
                     f"Required label file missing: "
-                    f"{file_name} at {file_path}"
+                    f"{file_name} at {file_path}",
                 )
 
     def test_log_subdir_files(self):
         """Test that all required log files exist in log subdirectory."""
-        log_files = self.expected_outputs['required_files']['log']
-        log_dir = os.path.join(self.expected_output_dir, 'log')
-        
+        log_files = self.expected_outputs["required_files"]["log"]
+        log_dir = os.path.join(self.expected_output_dir, "log")
+
         for file_name in log_files:
             file_path = os.path.join(log_dir, file_name)
             with self.subTest(file=file_name):
                 self.assertTrue(
                     os.path.isfile(file_path),
-                    f"Required log file missing: {file_name} at {file_path}"
+                    f"Required log file missing: {file_name} at {file_path}",
                 )
 
 
-if __name__ == '__main__':
-    
+if __name__ == "__main__":
+
     # Verify FreeSurfer environment before running tests
     fs_home = verify_freesurfer_environment()
     verify_license(fs_home)
-    
+
     # Try to use coverage if available, otherwise run tests without it
     if coverage:
         try:
@@ -254,7 +264,9 @@ if __name__ == '__main__':
             print(f"Coverage initialization failed: {e}")
             coverage_available = False
     else:
-        print("Coverage module not available, running tests without coverage tracking.")
+        print(
+            "Coverage module not available, running tests without coverage tracking."
+        )
         coverage_available = False
 
     # Run all tests
@@ -269,12 +281,14 @@ if __name__ == '__main__':
         cov.save()
 
         # Generate HTML report
-        html_report_dir = os.path.join(os.path.dirname(__file__), 'htmlcov_quick')    
+        html_report_dir = os.path.join(
+            os.path.dirname(__file__), "htmlcov_quick"
+        )
         cov.html_report(directory=html_report_dir)
-        
+
         print(
             f"Look at the HTML coverage report generated at: "
             f"{html_report_dir}/index.html"
         )
-    
+
     print("Done.")
