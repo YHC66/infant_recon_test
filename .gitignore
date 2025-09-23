@@ -1,0 +1,19 @@
+# FreeSurfer output directories
+test_execution_output/
+test_subjects/
+*_output/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# macOS
+.DS_Store
+
+# Test artifacts
+*.log
