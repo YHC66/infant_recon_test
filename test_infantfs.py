@@ -72,7 +72,7 @@ class TestOutputDirectoryTree(unittest.TestCase):
         "sub-01/anat/sub-01_T1w.nii.gz"
     )
     OUTPUT_DIR = (
-        "/autofs/vast/lzgroup/Users/IstvanHuszar/results/infantfs/full_run"
+        "/autofs/vast/lzgroup/Users/IstvanHuszar/results/infantfs/full_run2"
     )
 
     @classmethod
@@ -123,12 +123,9 @@ class TestOutputDirectoryTree(unittest.TestCase):
         except Exception as e:
             print(f"⚠️ InfantFS execution failed: {e}")
             print(
-                f"Tests will check expected structure but may fail due to missing files"
+                f"Tests will check expected structure but may fail due to "
+                "missing files"
             )
-            cls.infantfs_execution_successful = False
-        else:
-            cls.infantfs_execution_successful = True
-
         print("=" * 60)
 
     @staticmethod
@@ -155,7 +152,15 @@ class TestOutputDirectoryTree(unittest.TestCase):
         print("  This may take ~1 hour")
 
         # Parse arguments and run InfantFS main function
-        infantfs.main(cls.parsed_args)
+        try:
+            infantfs.main(cls.parsed_args)
+        except SystemExit as exc:
+            # Catch the sys.exit() call from infantfs.main()'s pipline handler.
+            # This is to avoid exiting from the setUpClass method
+            # before the tests can run.            
+            if exc.code != 0:
+                raise RuntimeError(
+                    f"InfantFS exited with non-zero code: {exc.code}")
 
         print(f"✅ InfantFS execution completed successfully")
         print(" All tests will now validate this output")
