@@ -4,7 +4,6 @@
 
 import os
 import unittest
-import argparse
 import shlex
 import yaml
 
@@ -25,7 +24,7 @@ except ImportError:
 # AUXILIARY FUNCTIONS
 
 
-def infantfs_parser(cmd_str: str) -> argparse.Namespace:
+def infantfs_parser(cmd_str):
     """
     Parse command-line arguments from a string using InfantFS's argument parser.
 
@@ -42,7 +41,7 @@ def infantfs_parser(cmd_str: str) -> argparse.Namespace:
     # Parse as if it came from the shell
     parsed = parser.parse_args(args_list)
 
-    return parsed
+    return parsed  # type: argparse.Namespace
 
 
 # UNIT TESTS
@@ -58,6 +57,24 @@ class TestOutputDirectoryTree(unittest.TestCase):
 
     """
 
+    # Define constants for test data and output directories
+    # These should be easy to change for different test setups (computers)
+
+    # --- Yihang's setup --------------------------------------------
+    INPUT_FILE = (
+        "/Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz"
+    )
+    OUTPUT_DIR = "/Users/cyh/Desktop/infant_recon_test/test_execution_output"
+
+    # --- Istvan's setup --------------------------------------------
+    INPUT_FILE = (
+        "/autofs/vast/lzgroup/Users/IstvanHuszar/fitng/ds004776-download/"
+        "sub-01/anat/sub-01_T1w.nii.gz"
+    )
+    OUTPUT_DIR = (
+        "/autofs/vast/lzgroup/Users/IstvanHuszar/results/infantfs/full_run"
+    )
+
     @classmethod
     def setUpClass(cls):
         """
@@ -70,7 +87,13 @@ class TestOutputDirectoryTree(unittest.TestCase):
         print("=" * 60)
 
         # Define the InfantFS command string for testing
-        cls.infantfs_command = "-s sub-01 --age 18 --inputfile /Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz --no-cleanup --outdir /Users/cyh/Desktop/infant_recon_test/test_execution_output"
+        cls.infantfs_command = (
+            f"-s sub-01 "
+            f"--age 18 "
+            f"--inputfile {cls.INPUT_FILE} "
+            f"--outdir {cls.OUTPUT_DIR} "
+            f"--no-cleanup "
+        )
 
         # Set the expected output directory
         # If this fails, no point in continuing...
@@ -121,7 +144,7 @@ class TestOutputDirectoryTree(unittest.TestCase):
         except Exception as e:
             raise RuntimeError(f"Error loading expected outputs from: {e}")
 
-        return config
+        return config  # type: dict
 
     @classmethod
     def _run_infantfs(cls):
@@ -245,6 +268,19 @@ class TestOutputDirectoryTree(unittest.TestCase):
                     os.path.isfile(file_path),
                     f"Required log file missing: {file_name} at {file_path}",
                 )
+
+    # TODO: Some outputs are missing from your expected_outputs.yaml
+    # Run infantfs to see what's missing, add them to the yaml file,
+    # and complete the missing tests here.
+
+
+# TODO: Implement further test classes to increase code coverage
+# Write new classes to test "graceful failures". A graceful failure is when
+# the program detects that it can't run (e.g., missing input file, invalid
+# age, etc.) and raises an exception or exits cleanly instead of crashing.
+# Look at the implementation of infant_recon_all_testable.py, see where these
+# if statements are, and construct commands that would make the program fail
+# at these points.
 
 
 if __name__ == "__main__":
