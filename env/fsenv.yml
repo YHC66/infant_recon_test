@@ -1,0 +1,13 @@
+name: fsenv
+channels:
+  - conda-forge
+dependencies:
+  - black
+  - coverage
+  - numpy
+  - pip
+  - python=3.8.13  # fspython constraint
+  - pyyaml
+  - scipy
+  - pip:
+      - surfa

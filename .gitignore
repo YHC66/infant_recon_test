@@ -17,3 +17,16 @@ htmlcov/
 
 # Test artifacts
 *.log
+
+# IDE configurations
+.vscode
+.idea
+
+# Test data
+sub-01/
+*.nii
+*.nii.gz
+
+# Test coverage
+.coverage
+

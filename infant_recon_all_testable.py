@@ -74,64 +74,7 @@ def create_cli():
     return parser
 
 
-def auto_setup_freesurfer_environment():
-    """
-    Automatically set up FreeSurfer environment if not already configured.
-    
-    This function checks if FREESURFER_HOME is set, and if not, attempts to 
-    find and configure FreeSurfer automatically.
-    """
-    if os.environ.get('FREESURFER_HOME'):
-        # Already configured
-        return
-    
-    # Common FreeSurfer installation paths
-    possible_paths = [
-        '/Applications/freesurfer/8.1.0',
-        '/Applications/freesurfer/7.4.1', 
-        '/Applications/freesurfer/7.3.2',
-        '/opt/freesurfer',
-        '/usr/local/freesurfer',
-        '/home/freesurfer'
-    ]
-    
-    freesurfer_home = None
-    for path in possible_paths:
-        if os.path.exists(path) and os.path.exists(os.path.join(path, 'bin')):
-            freesurfer_home = path
-            break
-    
-    if freesurfer_home:
-        print(f"🔧 Auto-configuring FreeSurfer environment: {freesurfer_home}")
-        
-        # Set FreeSurfer environment variables
-        os.environ['FREESURFER_HOME'] = freesurfer_home
-        
-        # Add FreeSurfer bin to PATH
-        freesurfer_bin = os.path.join(freesurfer_home, 'bin')
-        current_path = os.environ.get('PATH', '')
-        if freesurfer_bin not in current_path:
-            os.environ['PATH'] = f'{freesurfer_bin}:{current_path}'
-        
-        # Set additional FreeSurfer environment variables
-        os.environ['FSFAST_HOME'] = os.path.join(freesurfer_home, 'fsfast')
-        os.environ['FSF_OUTPUT_FORMAT'] = 'nii.gz'
-        os.environ['MNI_DIR'] = os.path.join(freesurfer_home, 'mni')
-        
-        # Set default SUBJECTS_DIR if not set
-        if not os.environ.get('SUBJECTS_DIR'):
-            os.environ['SUBJECTS_DIR'] = os.path.join(freesurfer_home, 'subjects')
-        
-        print(f"✅ FreeSurfer environment configured successfully")
-    else:
-        print("⚠️ FreeSurfer installation not found in common locations.")
-        print("Please set FREESURFER_HOME manually or install FreeSurfer.")
-
-
 def main(args):
-    
-    # Auto-setup FreeSurfer environment if needed
-    auto_setup_freesurfer_environment()
 
     # Configure directories
     subj = args.s
@@ -172,7 +115,7 @@ def main(args):
 
 
     # ---- Sanity check on the inputs ----
-        
+
     if not args.keep_going and not args.force and os.path.exists(os.path.join(outdir, 'mri')):
         message = f'Output already exists in {outdir}. To force overwrite, use the --force flag.' \
                 ' To pick-up from where the pipeline was left off or last modified, use the --keep-going' \
@@ -286,7 +229,7 @@ def main(args):
 
         if args.intnormFSL:
             # normalize with fsl utilities
-            maxcmd = '`fslstats %s -R | awk \'{print $2}\'`' % mprage
+            maxcmd = '`fslstats %s -R | awk \'{print $2}\'' % mprage
             commands.append(f'fslmaths {mprage} -div {maxcmd} -mul 255 {norm} -odt char')
         else:
             # normalize with nmi utilities
@@ -607,7 +550,7 @@ def main(args):
                     f'reg_aladin -ref {template} -flo {masked} -aff {base}.txt -res {base}.nii.gz -voff',
                     f'lta_convert --inniftyreg {base}.txt --outlta {base}.lta --outmni {base}.xfm --src {masked} --trg {template}',
                     f'lta_diff {base}.lta --dist 5 >> {detfile}',
-                    f'echo `tail -n 1 {detfile}` \\* {mult} | bc -l >> {etiv}',
+                    f'echo `tail -n 1 {detfile}` \* {mult} | bc -l >> {etiv}',
                 ]
                 pl.run(commands, inputs=masked, outputs=etiv)
 
