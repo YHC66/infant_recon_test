@@ -17,41 +17,60 @@ required_files:
   # Root directory files
   '.':
     - mprage.nii.gz
-  
+
   # MRI directory - core brain volumes
   mri:
-    - aseg.mgz
-    - aseg.nii.gz
-    - brain.mgz
-    - brainmask.mgz
-    - norm.mgz
-    - norm.nii.gz
-    - brain.finalsurfs.mgz
-    - filled.mgz
-    - wm.mgz
-  
+    - aseg.mgz          # Final segmentation 
+    - aseg.nii.gz       # NIfTI version of segmentation 
+    - brain.mgz         # Brain-extracted volume 
+    - brainmask.mgz     # Brain mask 
+    - norm.mgz          # Normalized volume 
+    - norm.nii.gz       # NIfTI normalized volume 
+    - brain.finalsurfs.mgz  # Final brain for surface creation
+    - filled.mgz        # Filled volume for surface creation
+    - wm.mgz            # White matter segmentation
+    - aseg.presurf.mgz  # Pre-surface segmentation backup 
+    - ribbon.mgz        # Combined cortical ribbon 
+    - lh.ribbon.mgz     # Left hemisphere ribbon 
+    - rh.ribbon.mgz     # Right hemisphere ribbon 
+    - aparc+aseg.mgz    # Parcellation + segmentation 
+
   # MRI transforms subdirectory
   mri/transforms:
-    - talairach.auto.xfm
-    - talairach.xfm
-  
+    - talairach.auto.xfm  # Talairach transform 
+    - talairach.xfm       # Copy of Talairach transform 
+
   # Surface directory - cortical surfaces
   surf:
-    - lh.orig
-    - lh.white
-    - lh.inflated
-    - lh.area
-    - lh.curv
-    - rh.orig
-    - rh.white
-    - rh.area
-    - rh.curv
-  
+    - lh.orig      # Original left hemisphere surface
+    - lh.white     # Left hemisphere white matter surface 
+    - lh.pial      # Left hemisphere pial surface 
+    - lh.sphere    # Left hemisphere spherical surface 
+    - lh.inflated  # Left hemisphere inflated surface
+    - lh.area      # Left hemisphere area measurements
+    - lh.curv      # Left hemisphere curvature
+    - rh.orig      # Original right hemisphere surface
+    - rh.white     # Right hemisphere white matter surface 
+    - rh.pial      # Right hemisphere pial surface 
+    - rh.sphere    # Right hemisphere spherical surface 
+    - rh.inflated  # Right hemisphere inflated surface
+    - rh.area      # Right hemisphere area measurements
+    - rh.curv      # Right hemisphere curvature
+
   # Label directory - cortical labels
   label:
-    - lh.cortex.label
-    - rh.cortex.label
-  
+    - lh.cortex.label     # Left hemisphere cortex label
+    - rh.cortex.label     # Right hemisphere cortex label
+    - lh.aparc.annot      # Left hemisphere parcellation 
+    - rh.aparc.annot      # Right hemisphere parcellation 
+    - aparc.annot.ctab    # Parcellation color table 
+
+  # Stats directory - statistical measurements
+  stats:
+    - lh.aparc.stats  # Left hemisphere parcellation stats 
+    - rh.aparc.stats  # Right hemisphere parcellation stats 
+    - aseg.stats      # Segmentation statistics 
+
   # Log directory - processing logs
   log:
     - recon.log
