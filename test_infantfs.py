@@ -274,6 +274,31 @@ class TestOutputDirectoryTree(unittest.TestCase):
                     f"Required log file missing: {file_name} at {file_path}",
                 )
 
+    def test_stats_subdir_files(self):
+        """Test that all required stats files exist in stats subdirectory."""
+        stats_files = self.expected_outputs["required_files"]["stats"]
+        stats_dir = os.path.join(self.expected_output_dir, "stats")
+
+        for file_name in stats_files:
+            file_path = os.path.join(stats_dir, file_name)
+            with self.subTest(file=file_name):
+                self.assertTrue(
+                    os.path.isfile(file_path),
+                    f"Required stats file missing: {file_name} at {file_path}",
+                )
+
+    def test_root_directory_files(self):
+        """Test that all required files exist in root output directory."""
+        root_files = self.expected_outputs["required_files"]["."]
+
+        for file_name in root_files:
+            file_path = os.path.join(self.expected_output_dir, file_name)
+            with self.subTest(file=file_name):
+                self.assertTrue(
+                    os.path.isfile(file_path),
+                    f"Required root file missing: {file_name} at {file_path}",
+                )
+
     # TODO: Some outputs are missing from your expected_outputs.yaml
     # Run infantfs to see what's missing, add them to the yaml file,
     # and complete the missing tests here.
