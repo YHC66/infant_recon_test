@@ -29,6 +29,11 @@ required_files:
     - brain.finalsurfs.mgz
     - filled.mgz
     - wm.mgz
+    - aseg.presurf.mgz  # Pre-surface segmentation backup
+    - ribbon.mgz
+    - lh.ribbon.mgz
+    - rh.ribbon.mgz
+    - aparc+aseg.mgz    # Combined parcellation and segmentation
   
   # MRI transforms subdirectory
   mri/transforms:
@@ -39,11 +44,16 @@ required_files:
   surf:
     - lh.orig
     - lh.white
+    - lh.pial
+    - lh.sphere
     - lh.inflated
     - lh.area
     - lh.curv
     - rh.orig
     - rh.white
+    - rh.pial
+    - rh.sphere
+    - rh.inflated
     - rh.area
     - rh.curv
   
@@ -51,7 +61,16 @@ required_files:
   label:
     - lh.cortex.label
     - rh.cortex.label
-  
+    - lh.aparc.annot
+    - rh.aparc.annot
+    - aparc.annot.ctab    # Parcellation color table
+
+  # Stats directory - statistical measurements
+  stats:
+    - lh.aparc.stats
+    - rh.aparc.stats
+    - aseg.stats
+
   # Log directory - processing logs
   log:
     - recon.log
