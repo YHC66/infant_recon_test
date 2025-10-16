@@ -60,20 +60,26 @@ class TestOutputDirectoryTree(unittest.TestCase):
     # Define constants for test data and output directories
     # These should be easy to change for different test setups (computers)
 
-    # --- Yihang's setup --------------------------------------------
-    INPUT_FILE = (
+    # --- Yihang's setup (ACTIVE) --------------------------------------------
+    # TODO: Configure these paths for your test setup via environment variables
+    #       or a configuration file instead of hard-coding them here
+    INPUT_FILE = os.getenv(
+        "INFANTFS_TEST_INPUT",
         "/Users/cyh/Desktop/infant_recon_test/sub-01/anat/sub-01_T1w.nii.gz"
     )
-    OUTPUT_DIR = "/Users/cyh/Desktop/infant_recon_test/test_execution_output"
+    OUTPUT_DIR = os.getenv(
+        "INFANTFS_TEST_OUTPUT",
+        "/Users/cyh/Desktop/infant_recon_test/test_execution_output"
+    )
 
     # --- Istvan's setup --------------------------------------------
-    INPUT_FILE = (
-        "/autofs/vast/lzgroup/Users/IstvanHuszar/fitng/ds004776-download/"
-        "sub-01/anat/sub-01_T1w.nii.gz"
-    )
-    OUTPUT_DIR = (
-        "/autofs/vast/lzgroup/Users/IstvanHuszar/results/infantfs/full_run2"
-    )
+    # INPUT_FILE = (
+    #     "/autofs/vast/lzgroup/Users/IstvanHuszar/fitng/ds004776-download/"
+    #     "sub-01/anat/sub-01_T1w.nii.gz"
+    # )
+    # OUTPUT_DIR = (
+    #     "/autofs/vast/lzgroup/Users/IstvanHuszar/results/infantfs/full_run2"
+    # )
 
     @classmethod
     def setUpClass(cls):
