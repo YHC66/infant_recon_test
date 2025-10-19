@@ -122,6 +122,20 @@ class TestOutputDirectoryTree(unittest.TestCase):
         # If it fails, no point in continuing...
         cls.expected_outputs = cls._load_expected_outputs_config()
 
+        # Verify input file exists and has data
+        if not os.path.exists(cls.INPUT_FILE):
+            raise unittest.SkipTest(
+                f"Test data not found: {cls.INPUT_FILE}\n"
+                f"Please provide a valid infant brain MRI scan."
+            )
+
+        # Check if input file is empty
+        if os.path.getsize(cls.INPUT_FILE) == 0:
+            raise unittest.SkipTest(
+                f"Test data file is empty: {cls.INPUT_FILE}\n"
+                f"Please provide a valid infant brain MRI scan (T1w NIfTI file)."
+            )
+
         # Parse arguments that will be used to call InfantFS.main()
         cls.parsed_args = infantfs_parser(cls.infantfs_command)
 
