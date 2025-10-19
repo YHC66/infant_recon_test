@@ -388,6 +388,77 @@ class TestInputValidationFailures(unittest.TestCase):
 
     # TODO: Add test methods for input validation failures
 
+    def test_existing_output_without_force_or_keep_going(self):
+        """
+        Reference: infant_recon_all_testable.py lines 119-123
+        The program should detect existing output and fail with helpful message.
+        """
+        # Create command with existing output directory
+        cmd = (
+            f"-s test_subject "
+            f"--age 12 "
+            f"--inputfile /tmp/dummy_input.nii.gz "
+            f"--outdir {self.existing_output_dir}"
+        )
+
+        # Parse arguments
+        parsed_args = infantfs_parser(cmd)
+
+        # The main() function should raise SystemExit or sf.system.fatal
+        # sf.system.fatal calls sys.exit(1), which raises SystemExit
+        with self.assertRaises(SystemExit) as cm:
+            infantfs.main(parsed_args)
+
+        # Verify it exited with non-zero code (error)
+        self.assertNotEqual(cm.exception.code, 0,
+                           "Should exit with error code when output exists")
+
+    def test_missing_subjects_dir_without_outdir(self):
+        """
+        Test failure when SUBJECTS_DIR is not set and --outdir not provided.
+        Reference: infant_recon_all_testable.py lines 125-126
+        """
+        # Temporarily unset SUBJECTS_DIR
+        original_subjects_dir = os.environ.get("SUBJECTS_DIR")
+        if "SUBJECTS_DIR" in os.environ:
+            del os.environ["SUBJECTS_DIR"]
+
+        try:
+            cmd = (
+                f"-s test_subject "
+                f"--age 12 "
+                f"--inputfile /tmp/dummy_input.nii.gz"
+                # Note: NO --outdir flag
+            )
+            parsed_args = infantfs_parser(cmd)
+
+            # Should raise SystemExit due to missing SUBJECTS_DIR
+            with self.assertRaises(SystemExit):
+                infantfs.main(parsed_args)
+
+        finally:
+            # Restore SUBJECTS_DIR
+            if original_subjects_dir:
+                os.environ["SUBJECTS_DIR"] = original_subjects_dir
+
+    def test_missing_input_file(self):
+        """
+        Test failure when no input file is provided.
+        Reference: infant_recon_all_testable.py lines 128-132
+        Should fail if no --inputfile, --masked, or default mprage.nii.gz exists.
+        """
+        cmd = (
+            f"-s nonexistent_subject "
+            f"--age 12 "
+            f"--outdir {os.path.join(self.TEST_OUTPUT_DIR, 'no_input')}"
+            # Note: NO --inputfile or --masked
+        )
+        parsed_args = infantfs_parser(cmd)
+
+        with self.assertRaises(SystemExit) as cm:
+            infantfs.main(parsed_args)
+
+        self.assertNotEqual(cm.exception.code, 0)
 
 
 if __name__ == "__main__":
