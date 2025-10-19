@@ -336,6 +336,60 @@ class TestOutputDirectoryTree(unittest.TestCase):
 # at these points.
 
 
+class TestInputValidationFailures(unittest.TestCase):
+    """
+    Test that InfantFS fails with appropriate error messages 
+    when given invalid inputs.
+
+    """
+
+    # Create a temporary fake output directory to test, not affecting real data directories
+
+    TEST_OUTPUT_DIR = "/tmp/infantfs_test_failures"
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up test fixtures for graceful failure tests."""
+        # Create test output directory if it doesn't exist
+        os.makedirs(cls.TEST_OUTPUT_DIR, exist_ok=True)
+
+        # Create a dummy existing output directory to test --force flag
+        cls.existing_output_dir = os.path.join(
+            cls.TEST_OUTPUT_DIR, "existing_output"
+        )
+        os.makedirs(cls.existing_output_dir, exist_ok=True)
+        # Create mri subdirectory to simulate previous run
+        os.makedirs(os.path.join(cls.existing_output_dir, "mri"), exist_ok=True)
+
+        # Store original environment variables to restore later
+        cls.original_fs_home = os.environ.get("FREESURFER_HOME")
+        cls.original_subjects_dir = os.environ.get("SUBJECTS_DIR")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up test directories after all tests complete."""
+        #  We only delete what we created (safe) 
+        if os.path.exists(cls.TEST_OUTPUT_DIR):
+            import shutil
+            shutil.rmtree(cls.TEST_OUTPUT_DIR)
+
+        # Restore original environment variables
+        if cls.original_fs_home:
+            os.environ["FREESURFER_HOME"] = cls.original_fs_home
+        else:
+            if "FREESURFER_HOME" in os.environ:
+                del os.environ["FREESURFER_HOME"]
+
+        if cls.original_subjects_dir:
+            os.environ["SUBJECTS_DIR"] = cls.original_subjects_dir
+        else:
+            if "SUBJECTS_DIR" in os.environ:
+                del os.environ["SUBJECTS_DIR"]
+
+    # TODO: Add test methods for input validation failures
+
+
+
 if __name__ == "__main__":
 
     # Verify FreeSurfer environment before running tests
