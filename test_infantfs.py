@@ -109,10 +109,13 @@ class TestOutputDirectoryTree(unittest.TestCase):
 
         # Ensure the output directory is clean before running tests
         # Requiring it to be empty is safer than deleting it outright
+        # Check if output directory exists and has previous results
         if os.path.exists(cls.expected_output_dir):
-            if not os.listdir(cls.expected_output_dir):
+            contents = [f for f in os.listdir(cls.expected_output_dir) if not f.startswith('.')]
+            if contents:
                 raise RuntimeError(
                     f"Output directory is not empty: {cls.expected_output_dir}"
+                    f"Please manually remove it or use a different output directory."
                 )
 
         # Load expected outputs from YAML file
