@@ -550,7 +550,7 @@ def main(args):
                     f'reg_aladin -ref {template} -flo {masked} -aff {base}.txt -res {base}.nii.gz -voff',
                     f'lta_convert --inniftyreg {base}.txt --outlta {base}.lta --outmni {base}.xfm --src {masked} --trg {template}',
                     f'lta_diff {base}.lta --dist 5 >> {detfile}',
-                    f'echo `tail -n 1 {detfile}` \* {mult} | bc -l >> {etiv}',
+                    f'echo `tail -n 1 {detfile}` \\* {mult} | bc -l >> {etiv}',
                 ]
                 pl.run(commands, inputs=masked, outputs=etiv)
 
